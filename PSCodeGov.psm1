@@ -234,6 +234,33 @@ Function Get-GitHubRepositoryLicenseUrl() {
     return $license
 }
 
+Function Get-GitHubRepositoryDisclaimerUrl() {
+    [CmdletBinding()] 
+    [OutputType([string])]
+    Param(
+        [Parameter(Mandatory=$true, HelpMessage='The URL of the repository')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Url,
+
+        [Parameter(Mandatory=$true, HelpMessage='The default branch of the repository')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Branch
+    )
+
+    $license = $null
+
+    $urls = [string[]]@(('{0}/blob/{1}/DISCLAIMER' -f $Url,$Branch),('{0}/blob/{1}/DISCLAIMER.md' -f $Url,$Branch))
+
+    $urls = $urls | ForEach-Object { 
+        if (Test-Url -Url $_ ) { 
+            $license = $_ 
+            return
+        } 
+    }
+
+    return $license
+}
+
 Function Get-GitHubRepositoryReleaseUrl() {
     [CmdletBinding()] 
     [OutputType([string])]
@@ -320,13 +347,21 @@ Function New-CodeGovJson() {
         [ValidateNotNullOrEmpty()]
         [string]$AgencyName,
 
-        [Parameter(Mandatory=$true, HelpMessage='A generic email address that can be used as a contact point for agency open source releases')]
+        [Parameter(Mandatory=$true, HelpMessage='A email address that can be used as a contact point for agency open source releases')]
         [ValidateNotNullOrEmpty()]
-        [string]$AgencyEmail,
+        [string]$AgencyContactEmail,
         
-        [Parameter(Mandatory=$false, HelpMessage='A description of the generic agency email address')]
+        [Parameter(Mandatory=$false, HelpMessage='A description or name associated with agency email address')]
         [ValidateNotNullOrEmpty()]
-        [string]$AgencyEmailDescription,
+        [string]$AgencyContactName,
+        
+        [Parameter(Mandatory=$false, HelpMessage='A URL containing contact information for agency open source releases')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AgencyContactUrl,
+        
+        [Parameter(Mandatory=$false, HelpMessage='A phone number for agency open source releases')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AgencyContactPhone,        
 
         [Parameter(Mandatory=$false, HelpMessage='Include private repositories in the code.json file')]
         [switch]$IncludePrivate,
@@ -338,63 +373,103 @@ Function New-CodeGovJson() {
     $Organization | ForEach-Object {
         $repositories = Get-GitHubRepositories -Organization $_
 
-        $projects = @()
+        $releases = @()
 
-        $contact = [pscustomobject][ordered]@{
-            'email' = $AgencyEmail; # required
-            'name' =  $AgencyEmailDescription; # optional
+        $contact = @{
+            'email' = $AgencyContactEmail; # required
+        }
+
+        if ($AgencyContactName -ne $null -and $AgencyContactName -ne '' ) {
+            $contact.Add('name', $AgencyContactName) # optional
         }
         
+        if ($AgencyContactUrl -ne $null -and $AgencyContactUrl -ne '' ) {
+            $contact.Add('URL', $AgencyContactUrl) # optional
+        }
+
+        if ($AgencyContactPhone -ne $null -and $AgencyContactPhone -ne '' ) {
+            $contact.Add('phone', $AgencyContactPhone) # optional
+        }
+       
         $repositories | Where-Object { $_.private -eq $IncludePrivate -and $_.fork -eq $IncludeForks } | ForEach-Object {
             $branch = $_.default_branch
 
             $name = $_.name
-            $repository = $_.html_url
+            $repositoryUrl = $_.html_url
             $description = if ($_.description -eq $null) { 'No description provided' } else { $_.description }
             $tags = if ($_.topics -eq $null -or $_.topics.Count -eq 0) { [string[]]@('none') } else { [string[]]@($_.topics) }
-            $homepage = if ($_.homepage -eq $null -or $_.homepage -eq '') { $repository } else { $_.homepage }
+            $homepageUrl = if ($_.homepage -eq $null -or $_.homepage -eq '') { $repositoryUrl } else { $_.homepage }
             $languages = Get-GitHubRepositoryLanguages -Url $_.languages_url
             $lastUpdated = $_.updated_at
             $lastCommit = $_.pushed_at
+            $created = $_.created_at
+            $isArchived = $_.archived
 
-            $license = Get-GitHubRepositoryLicenseUrl -Url $repository -Branch $branch
-            $license = if ($license -eq $null) { 'null'} else { $license }
+            $licenseUrl = Get-GitHubRepositoryLicenseUrl -Url $repositoryUrl -Branch $branch
+            $licenseUrl = if ($licenseUrl -eq $null) { 'null'} else { $licenseUrl }
+            
+            $disclaimerUrl = Get-GitHubRepositoryDisclaimerUrl -Url $repositoryUrl -Branch $branch
+            $disclaimerUrl = if ($disclaimerUrl -eq $null) { 'null'} else { $disclaimerUrl }
 
-            $download = Get-GitHubRepositoryReleaseUrl -Url $_.releases_url
-            $download = if ($download -eq $null) {  ('{0}/archive/{1}.zip' -f $repository,$branch) } else { $download }
+            $downloadUrl = Get-GitHubRepositoryReleaseUrl -Url $_.releases_url
+            $downloadUrl = if ($downloadUrl -eq $null) {  ('{0}/archive/{1}.zip' -f $repositoryUrl,$branch) } else { $downloadUrl }
 
-            $updated = [pscustomobject]@{
+            $date = [pscustomobject]@{
+                'created' = $created; # optional
                 'metadataLastUpdated' = $lastUpdated; # optional
-                'lastCommit' = $lastCommit; # optional
+                'lastModified' = $lastCommit; # optional
+            }
+            
+    
+            $license = [pscustomobject]@{
+                'URL' = $licenseUrl; # required
+                'name' = 'Manually add license name'; # required, needs to be manually updated
             }
 
-            $project = [ordered]@{
-                'name'= $name; # required
-                'repository' = $repository; # required
+            $licenses = @($license)
+            
+            $permissions = [pscustomobject]@{
+                'licenses' = $licenses; # required
+                'usageType' = 'openSource'; # required
+            }
+            
+            $status = if ($isArchived) { 'Archival' } else { 'Production'}
+            
+            $release = [ordered]@{
+                'name' = $name; # required
+                'repositoryURL' = $repositoryUrl; # required
                 'description' = $description; # required
-                'license' = $license ; # required
-                'openSourceProject' = [int]!$IncludePrivate; # required 
-                'governmentWideReuseProject' = '1'; # required
-                'tags' = $tags; # required
-                'contact' = $contact; # required
+                'permissions' = $permissions; # required
+                'laborHours' = 1; # required, needs to be manually updated
+                'tags' = [string[]]@($tags); # required
+                'contact' = [pscustomobject]$contact; # required
+
+                #'version' = '' # optional
+                'status' = $status; # optional
                 'vcs' = 'git'; # optional
-                'homepage' = $homepage; # optional
-                'downloadURL' = $download ; # optional, actually downloadURL?
-                'updated' = $updated; # optional
+                'homepageURL' = $homepageUrl; # optional
+                'downloadURL' = $downloadUrl; # optional
+                'disclaimerURL' = $disclaimerUrl; # optional
+                'date' = $date; # optional
             }
 
             if ($languages.Count -gt 0) {
-                $project.Add('languages', $languages) # optional
+                $release.Add('languages', $languages) # optional
             }
 
-            $projects += [pscustomobject]$project
+            $releases += [pscustomobject]$release
         }
     }
 
+    $measurementType = [pscustomobject]@{
+        'method' = 'projects';
+    }
+
     $codeGov = [pscustomobject][ordered]@{
-        'version' = '1.0.1';
+        'version' = '2.0'; # required
         'agency' = $AgencyName; # required
-        'projects' = $projects | Sort-Object -Property 'Name';
+        'measurementType' = $measurementType; # required
+        'releases' = $releases | Sort-Object -Property 'Name'; # required
     }
 
     return $codeGov
@@ -412,13 +487,21 @@ Function New-CodeGovJsonFile() {
         [ValidateNotNullOrEmpty()]
         [string]$AgencyName,
 
-        [Parameter(Mandatory=$true, HelpMessage='A generic email address that can be used as a contact point for agency open source releases')]
+        [Parameter(Mandatory=$true, HelpMessage='A email address that can be used as a contact point for agency open source releases')]
         [ValidateNotNullOrEmpty()]
-        [string]$AgencyEmail,
+        [string]$AgencyContactEmail,
         
-        [Parameter(Mandatory=$false, HelpMessage='A description of the generic agency email address')]
+        [Parameter(Mandatory=$false, HelpMessage='A description or name associated with agency email address')]
         [ValidateNotNullOrEmpty()]
-        [string]$AgencyEmailDescription,
+        [string]$AgencyContactName,
+        
+        [Parameter(Mandatory=$false, HelpMessage='A URL containing contact information for agency open source releases')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AgencyContactUrl,
+        
+        [Parameter(Mandatory=$false, HelpMessage='A phone number for agency open source releases')]
+        [ValidateNotNullOrEmpty()]
+        [string]$AgencyContactPhone,        
 
         [Parameter(Mandatory=$false, HelpMessage='Include private repositories in the code.json file')]
         [switch]$IncludePrivate,
@@ -443,7 +526,6 @@ Function Add-Repository() {
     Param(
     )
 }
-
 
 Function Copy-PSObject() {
     [CmdletBinding()]
@@ -561,4 +643,5 @@ Function Invoke-CodeGovJsonOverride() {
     $codeGovJson.projects = $map.Values | Sort-Object -Property 'Name'
     $codeGovJson | ConvertTo-Json -Depth 5 | Out-File -FilePath $NewJsonPath -Force -NoNewline -Encoding 'ASCII'
 }
+
 
