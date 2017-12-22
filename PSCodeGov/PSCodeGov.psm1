@@ -17,7 +17,7 @@ Function Set-OAuthToken() {
     $env:OAUTH_TOKEN = $Token
 }
 
-Function Get-OAUthToken() {
+Function Get-OAuthToken() {
     [CmdletBinding()] 
     [OutputType([string])]
     Param()
@@ -234,6 +234,95 @@ Function Get-GitHubRepositoryLicenseUrl() {
     return $license
 }
 
+Function Get-GitHubRepositoryLicense() {
+    [CmdletBinding()] 
+    [OutputType([pscustomobject])]
+    Param(
+        [Parameter(Mandatory=$true, HelpMessage="The name of the organization's repository taken from the GitHub URL")]
+        [ValidateNotNullOrEmpty()]
+        [string]$Organization,
+
+        [Parameter(Mandatory=$true, HelpMessage='The URL of the repository')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Url,
+
+        [Parameter(Mandatory=$true, HelpMessage='The name of the repository')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Project,
+
+        [Parameter(Mandatory=$true, HelpMessage='The default branch of the repository')]
+        [ValidateNotNullOrEmpty()]
+        [string]$Branch
+    )
+
+    $license = $null
+    $response = $null
+    $conte = $null
+
+    $uri = ($script:GitHubBaseUri,'repos',$Organization.ToLower(),$Project,'license' -join '/')
+
+    $proxyUri = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy($uri)
+
+    $params = @{
+        Uri = $uri;
+        Method = 'Get';
+        ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
+        UseBasicParsing = $true;
+    }
+
+    if (([string]$proxyUri) -ne $uri) {
+        $params.Add('Proxy',$proxyUri)
+    }
+
+    if (Test-OAuthToken) {
+        if ($params.ContainsKey('Headers')) {
+            $val = $params['Headers']
+            $val.Add('Authorization', "token $(Get-OAuthToken)")
+            $params['Headers'] = $val
+        } else {
+            $params.Add('Headers', @{'Authorization'="token $(Get-OAuthToken)"})
+        }
+    }
+
+    $ProgressPreference = [System.Management.Automation.ActionPreference]::SilentlyContinue
+
+    $statusCode = 0
+
+    try {
+        $response = Invoke-WebRequest @params
+
+        $statusCode = $response.StatusCode
+        $content = $response.Content
+    } catch {
+        $statusCode = [int]$_.Exception.Response.StatusCode
+        $content = $_.ToString()
+
+        if ($content -eq $null) {
+            Write-Error $_
+        }
+    } 
+
+    $lic = $content | ConvertFrom-Json
+
+    if ($content -eq $null -or $content -eq '') {
+        throw "Request failed with status code $statusCode"
+    }
+
+    if($lic.PSObject.Properties.Name -contains 'message') {
+        $license = [pscustomobject]@{
+            Url = Get-GitHubRepositoryLicenseUrl -Url $Url -Branch $Branch;
+            SPDX = '';
+        }
+    } else {
+        $license = [pscustomobject]@{
+            Url = $lic.html_url;
+            SPDX =  $lic.license.spdx_id
+        }
+    }
+
+    return $license
+}
+
 Function Get-GitHubRepositoryDisclaimerUrl() {
     [CmdletBinding()] 
     [OutputType([string])]
@@ -247,18 +336,18 @@ Function Get-GitHubRepositoryDisclaimerUrl() {
         [string]$Branch
     )
 
-    $license = $null
+    $disclaimer = $null
 
     $urls = [string[]]@(('{0}/blob/{1}/DISCLAIMER' -f $Url,$Branch),('{0}/blob/{1}/DISCLAIMER.md' -f $Url,$Branch))
 
     $urls = $urls | ForEach-Object { 
         if (Test-Url -Url $_ ) { 
-            $license = $_ 
+            $disclaimer = $_ 
             return
         } 
     }
 
-    return $license
+    return $disclaimer
 }
 
 Function Get-GitHubRepositoryReleaseUrl() {
@@ -371,7 +460,8 @@ Function New-CodeGovJson() {
     )
 
     $Organization | ForEach-Object {
-        $repositories = Get-GitHubRepositories -Organization $_
+        $org = $_
+        $repositories = Get-GitHubRepositories -Organization $org
 
         $releases = @()
 
@@ -405,8 +495,8 @@ Function New-CodeGovJson() {
             $created = $_.created_at
             $isArchived = $_.archived
 
-            $licenseUrl = Get-GitHubRepositoryLicenseUrl -Url $repositoryUrl -Branch $branch
-            $licenseUrl = if ($licenseUrl -eq $null) { 'null'} else { $licenseUrl }
+            $lic = Get-GitHubRepositoryLicense -Organization $org -Url $repositoryUrl -Project $name -Branch $branch
+            #$licenseUrl = if ($licenseUrl -eq $null) { 'null'} else { $licenseUrl }
             
             $disclaimerUrl = Get-GitHubRepositoryDisclaimerUrl -Url $repositoryUrl -Branch $branch
             $disclaimerUrl = if ($disclaimerUrl -eq $null) { 'null'} else { $disclaimerUrl }
@@ -419,11 +509,10 @@ Function New-CodeGovJson() {
                 'metadataLastUpdated' = $lastUpdated; # optional
                 'lastModified' = $lastCommit; # optional
             }
-            
-    
+
             $license = [pscustomobject]@{
-                'URL' = $licenseUrl; # required
-                'name' = 'Manually add license name'; # required, needs to be manually updated
+                'URL' = $lic.Url; # required
+                'name' = $lic.SPDX; # required, needs to be manually updated
             }
 
             $licenses = @($license)
@@ -431,6 +520,34 @@ Function New-CodeGovJson() {
             $permissions = [pscustomobject]@{
                 'licenses' = $licenses; # required
                 'usageType' = 'openSource'; # required
+            }
+
+            if ($_.name -eq $null -or $_.name -eq '') {
+                Write-Warning -Message ('Required element name was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($repositoryUrl -eq $null -or $repositoryUrl -eq '') {
+                Write-Warning -Message ('Required element repositoryURL was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($_.description -eq $null -or $_.description -eq '') {
+                Write-Warning -Message ('Required element description was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($_.topics -eq $null -or $_.topics.Count -eq 0) {
+                Write-Warning -Message ('Required element tags was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($contact.email -eq $null -or $contact.email -eq '') {
+                Write-Warning -Message ('Required element contact.email was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($license.URL -eq $null -or $license.URL -eq '') {
+                Write-Warning -Message ('Required element permissions.license.URL was empty for organization {0} repository {1}' -f $org,$name)
+            }
+
+            if ($license.name -eq $null -or $license.name -eq '') {
+                Write-Warning -Message ('Required element permissions.license.name was empty for organization {0} repository {1}' -f $org,$name)
             }
             
             $status = if ($isArchived) { 'Archival' } else { 'Production'}
@@ -577,7 +694,7 @@ Function Invoke-CodeGovJsonOverride() {
 
     $map = @{}
 
-    $codeGovJson.projects | ForEach-Object {
+    $codeGovJson.releases | ForEach-Object {
         $map.Add($_.Name, (Copy-PSObject -PSObject $_))
     }
 
@@ -589,7 +706,7 @@ Function Invoke-CodeGovJsonOverride() {
         if ($map.ContainsKey($targetProject)) {
             $project = $map[$targetProject]
         } else {
-            Write-Verbose -Message ('{0} project not found' -f $targetProject)
+            Write-Verbose -Message ('{0} release not found' -f $targetProject)
             return
         }
 
@@ -606,6 +723,9 @@ Function Invoke-CodeGovJsonOverride() {
                         $map[$targetProject] = $project
                     } elseif ($props.Length -eq 2) {
                         $project.($props[0]).($props[1]) = $targetValue
+                        $map[$targetProject] = $project
+                    } elseif ($props.Length -eq 3) { # this is to support permissions.licenses[].name and .url
+                        $project.($props[0]).($props[1])[0].($props[2]) = $targetValue # hardcoded for only 1 license existing in the array
                         $map[$targetProject] = $project
                     }
                 } else {
@@ -627,6 +747,24 @@ Function Invoke-CodeGovJsonOverride() {
 
                  return
             }
+            'removeproperty' {
+                $targetProperty = $override.property
+
+                 if (($project | Get-Member -MemberType 'NoteProperty' | Where-Object { $_.Name -eq ($targetProperty.Split('.')[0]) }) -ne $null) {
+                     $props = $targetProperty.Split('.')
+
+                     if ($props.Length -eq 1) {
+                         $project.PSObject.Properties.Remove($targetProperty)
+                         $map[$targetProject] = $project
+                     } elseif ($props.Length -eq 2) {
+                         $project.($props[0]).PSObject.Properties.Remove(($props[1]))
+                         $map[$targetProject] = $project
+                     }
+                 } else {
+
+                     Write-Warning -Message ('{0} property does not exist for project {1} so it cannot be removed' -f $targetProperty,$targetProject)
+                 }
+            }
             'removeproject' {
                 if ($map.ContainsKey($targetProject)) {
                     $map.Remove($targetProject)
@@ -640,7 +778,7 @@ Function Invoke-CodeGovJsonOverride() {
         }
     }   
 
-    $codeGovJson.projects = $map.Values | Sort-Object -Property 'Name'
+    $codeGovJson.releases = $map.Values | Sort-Object -Property 'Name'
     $codeGovJson | ConvertTo-Json -Depth 5 | Out-File -FilePath $NewJsonPath -Force -NoNewline -Encoding 'ASCII'
 }
 
