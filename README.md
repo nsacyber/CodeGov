@@ -1,7 +1,6 @@
 # PSCodeGov
 Creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/#/policy-guide/docs/compliance/inventory-code) based on GitHub repository information.
 
-
 ```
 Import-Module -Name .\PSCodeGov.psm1
 
@@ -12,6 +11,9 @@ New-CodeGovJsonFile -Organization iadgov -AgencyName 'NSA Information Assurance'
 
 ## License
 See [LICENSE](./LICENSE.md).
+
+## Contributing
+See [CONTRIBUTING](./CONTRIBUTING.md).
 
 ## Disclaimer
 See [DISCLAIMER](./DISCLAIMER.md).
