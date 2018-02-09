@@ -5,6 +5,8 @@ Set-StrictMode -Version 3
 
 Import-Module -Name PSCodeGov
 
+Set-OAuthToken -Token 'insertgithubapitokenvaluehere'
+
 #New-CodeGovJsonFile -Organization 'NationalSecurityAgency' -AgencyName 'National Security Agency' -AgencyContactEmail 'tech_transfer@nsa.gov' -AgencyContactName 'NSA Technology Transfer Program' -AgencyContactUrl 'https://www.nsa.gov/what-we-do/research/technology-transfer/' -AgencyContactPhone '1-866-680-4539' -Path '.\nsa_code.json'
 
 #WARNING: Required element tags was empty for organization NationalSecurityAgency repository SIMP
@@ -30,3 +32,6 @@ New-CodeGovJsonFile -Organization iadgov -AgencyName 'NSA Information Assurance'
 
 Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\nsaia.json" -NewJsonPath "$env:userprofile\Desktop\nsaia_code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\iadgov.github.io\overrides.json"
 
+$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Documents\GitHub\iadgov.github.io\code.json"
+
+$valid
