@@ -641,9 +641,8 @@ Function Test-CodeGovJsonFile() {
     [CmdletBinding()] 
     [OutputType([bool])]
     Param(
-        [Parameter(Mandatory=$true, HelpMessage='GitHub organization name(s)')]
+        [Parameter(Mandatory=$true, HelpMessage='Path of the code.gov JSON file to validate')]
         [ValidateNotNullOrEmpty()]
-        [Parameter(Mandatory=$true, HelpMessage='Path to save the JSON file to')]
         [string]$Path
     )
     
