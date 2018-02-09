@@ -946,44 +946,26 @@ Function Test-CodeGovJsonFile() {
 '@    
     
     $content = Get-Content -Path $Path -Raw 
+  
+    $schema = [NewtonSoft.Json.Schema.JSchema]::Parse($codeGov20Schema)
+    
+    #$settings = New-Object Newtonsoft.Json.Linq.JsonLoadSettings
+    #$settings.CommentHandling = [Newtonsoft.Json.Linq.CommentHandling]::Ignore
+    #$settings.LineInfoHandling = [Newtonsoft.Json.Linq.LineInfoHandling]::Load
+    #$json = [Newtonsoft.Json.Linq.JToken]::Parse($content, $settings)
+    
+    $validationErrors = New-Object System.Collections.Generic.List[Newtonsoft.Json.Schema.ValidationError]
 
-    $codeGovJson = $content | ConvertFrom-Json
-
-    $propertyNames = @('version','agency','measurementType','releases')
+    #$isValid = [NewtonSoft.Json.Schema.SchemaExtensions]::IsValid($json, $schema, [ref]$validationErrors)
+    $isValid = [NewtonSoft.Json.Schema.SchemaExtensions]::IsValid($content, $schema, [ref]$validationErrors)
     
-    $propertyNames | ForEach-Object {
-        $propertyName = $_
-        
-        if (!($codeGovJson.PSObject.Properties.Name -contains $propertyName)) {
-            Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-        }     
-    }
-    
-    $schema = [NewtonSoft.Json.Schema.JSchema]::Parse($script:codeGov20Schema)
-    
-    if (!$schema.Valid) {
-        throw 'code.gov schema is not valid'
-    }
-    
-    $settings = New-Object Newtonsoft.Json.Linq.JsonLoadSettings
-    $settings.CommentHandling = [Newtonsoft.Json.Linq.CommentHandling]::Ignore
-    $settings.LineInfoHandling = [Newtonsoft.Json.Linq.LineInfoHandling]::Load
-    $json = [Newtonsoft.Json.Linq.JToken]::Parse($content, $settings)
-    
-    $validationErrors = $null
-    
-    $isValid = [NewtonSoft.Json.Schema.JSchema]::IsValid($content, $schema, $validationErrors)
-    
-    if (!$isValid -and $validationErrors -ne $null) {
+    if (!$isValid -and $validationErrors.Count -gt 0) {
         $validationErrors | ForEach-Object {
-            Write-Warning -Message $_
+            Write-Warning -Message $_.Message
         }
     }
-    
-    if ($codeGovJson.PSObject.Properties.Name -contains 'releases') {
-        $codeGovJson.releases | ForEach-Object {
-            $release = $_
-    }
+
+    return $isValid
 }
 
 Function Add-Repository() {
