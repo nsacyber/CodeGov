@@ -61,6 +61,8 @@ Now extract the downloaded zip file and load the PowerShell code used for apply 
 1. `mv .\PSCodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
+This module depends on [NewtonSoft.Json](https://github.com/JamesNK/Newtonsoft.Json/releases) and [NewtonSoft.Json.Schema](https://github.com/JamesNK/Newtonsoft.Json.Schema/releases) for validation of the generated code.gov JSON file. Ensure those assemblies are installed in the .Net Global Assembly Cache (GAC).
+
 ```
 Import-Module -Name PSCodeGov
 
