@@ -637,7 +637,17 @@ Function New-CodeGovJsonFile() {
     New-CodeGovJson @parameters | ConvertTo-Json -Depth 5 | Out-File -FilePath $Path -Force -NoNewline -Encoding 'ASCII'
 }
 
-$script:codeGov20Schema = @'
+Function Test-CodeGovJsonFile() {
+    [CmdletBinding()] 
+    [OutputType([bool])]
+    Param(
+        [Parameter(Mandatory=$true, HelpMessage='GitHub organization name(s)')]
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true, HelpMessage='Path to save the JSON file to')]
+        [string]$Path
+    )
+    
+    $codeGov20Schema = @'
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Code.gov Inventory",
@@ -933,17 +943,7 @@ $script:codeGov20Schema = @'
   ],
   "additionalProperties": false
 }
-'@
-
-Function Test-CodeGovJsonFile() {
-    [CmdletBinding()] 
-    [OutputType([bool])]
-    Param(
-        [Parameter(Mandatory=$true, HelpMessage='GitHub organization name(s)')]
-        [ValidateNotNullOrEmpty()]
-        [Parameter(Mandatory=$true, HelpMessage='Path to save the JSON file to')]
-        [string]$Path
-    )
+'@    
     
     $content = Get-Content -Path $Path -Raw 
 
