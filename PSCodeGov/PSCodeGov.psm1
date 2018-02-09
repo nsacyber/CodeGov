@@ -743,7 +743,7 @@ $script:codeGov20Schema = @'
                 "description": "If an exemption is listed in the 'usageType' field, this field should include a one- or two- sentence justification for the exemption used."
               }
             },
-            "required":"licenses"
+            "required": ["licenses"]
           },
           "tags": {
             "type": "array",
@@ -776,7 +776,7 @@ $script:codeGov20Schema = @'
                 "description": "A phone number for the point of contact for the release."
               }
             },
-            "required": "email",
+            "required": ["email"],
             "additionalProperties": false
           },
           "status": {
@@ -956,24 +956,23 @@ Function Test-CodeGovJsonFile() {
         
         if (!($codeGovJson.PSObject.Properties.Name -contains $propertyName)) {
             Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-        }
-        
+        }     
     }
     
     $schema = [NewtonSoft.Json.Schema.JSchema]::Parse($script:codeGov20Schema)
     
-    if (!$scheme.Valid) {
+    if (!$schema.Valid) {
         throw 'code.gov schema is not valid'
     }
     
     $settings = New-Object Newtonsoft.Json.Linq.JsonLoadSettings
     $settings.CommentHandling = [Newtonsoft.Json.Linq.CommentHandling]::Ignore
     $settings.LineInfoHandling = [Newtonsoft.Json.Linq.LineInfoHandling]::Load
-    $json = [Newtonsoft.Json.Linq]::Parse($content, $settings)
+    $json = [Newtonsoft.Json.Linq.JToken]::Parse($content, $settings)
     
     $validationErrors = $null
     
-    $isValid = [NewtonSoft.Json.Schema.JSchema]::IsValid($codeGovJson, $schema, $validationErrors)
+    $isValid = [NewtonSoft.Json.Schema.JSchema]::IsValid($content, $schema, $validationErrors)
     
     if (!$isValid -and $validationErrors -ne $null) {
         $validationErrors | ForEach-Object {
@@ -984,85 +983,6 @@ Function Test-CodeGovJsonFile() {
     if ($codeGovJson.PSObject.Properties.Name -contains 'releases') {
         $codeGovJson.releases | ForEach-Object {
             $release = $_
-
-            $propertyNames = @('name','repositoryURL','description','permissions','laborHours','tags','contact')
-
-            $propertyName = 'name'
-            
-            if ($release.PSObject.Properties.Name -contains $propertyName) {
-                $value = $release.($propertyName)
-                
-                if($value -eq $null -or $value -eq '') {
-                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
-                }
-            } else {
-                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-            }
-            
-            $propertyName = 'repositoryURL'
-            
-            if ($release.PSObject.Properties.Name -contains $propertyName) {
-                $value = $release.($propertyName)
-                
-                if($value -eq $null -or $value -eq '') {
-                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
-                }
-                
-                #TODO: check if it is a URL
-            } else {
-                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-            }
-            
-            $propertyName = 'description'
-            
-            if ($release.PSObject.Properties.Name -contains $propertyName) {
-                $value = $release.($propertyName)
-                
-                if($value -eq $null -or $value -eq '') {
-                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
-                }
-            } else {
-                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-            }
-            
-            $propertyName = 'permissions'
-            
-            if ($release.PSObject.Properties.Name -contains $propertyName) {
-                $value = $release.($propertyName)
-                
-                if($value -isnot [psobject]) {
-                    Write-Warning -Message ('Required {0} property is not an object' -f $propertyName)
-                } else {
-                
-                    $propertyName = 'licenses'
-
-                    if($value.PSObject.Properties.Name -contains $propertyName) {
-                        $value = $value.($propertyName)
-                        
-                        if($value -isnot [psobject]) {
-                            Write-Warning -Message ('Required {0} property is not an object' -f $propertyName)
-                        } else {
-                        
-                        }
-                        
-                    } else {
-                        Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-                    }
-                
-                }
-            } else {
-                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
-            }
-
-# permissions.licenses
-# permissions.usageType
-
-# license.URL
-# license.name
-
-# contact.email    
-            
-        }
     }
 }
 
