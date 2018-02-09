@@ -1,5 +1,4 @@
-﻿#requires -Version 3
-Set-StrictMode -Version 3
+﻿Set-StrictMode -Version 3
 
 $script:GitHubBaseUri = 'https://api.github.com'
 
@@ -222,7 +221,7 @@ Function Get-GitHubRepositoryLicenseUrl() {
 
     $license = $null
 
-    $urls = [string[]]@(('{0}/blob/{1}/LICENSE' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.md' -f $Url,$Branch))
+    $urls = [string[]]@(('{0}/blob/{1}/LICENSE' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.md' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.txt' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.spdx' -f $Url,$Branch))
 
     $urls = $urls | ForEach-Object { 
         if (Test-Url -Url $_ ) { 
@@ -338,7 +337,7 @@ Function Get-GitHubRepositoryDisclaimerUrl() {
 
     $disclaimer = $null
 
-    $urls = [string[]]@(('{0}/blob/{1}/DISCLAIMER' -f $Url,$Branch),('{0}/blob/{1}/DISCLAIMER.md' -f $Url,$Branch))
+    $urls = [string[]]@(('{0}/blob/{1}/DISCLAIMER' -f $Url,$Branch),('{0}/blob/{1}/DISCLAIMER.md' -f $Url,$Branch),('{0}/blob/{1}/DISCLAIMER.txt' -f $Url,$Branch))
 
     $urls = $urls | ForEach-Object { 
         if (Test-Url -Url $_ ) { 
@@ -626,6 +625,7 @@ Function New-CodeGovJsonFile() {
         [Parameter(Mandatory=$false, HelpMessage='Include repositories that are forks of other projects')]
         [switch]$IncludeForks,
 
+        [ValidateNotNullOrEmpty()]
         [Parameter(Mandatory=$true, HelpMessage='Path to save the JSON file to')]
         [string]$Path
     )
@@ -635,6 +635,435 @@ Function New-CodeGovJsonFile() {
     $parameters.Remove('Path') | Out-Null
 
     New-CodeGovJson @parameters | ConvertTo-Json -Depth 5 | Out-File -FilePath $Path -Force -NoNewline -Encoding 'ASCII'
+}
+
+$script:codeGov20Schema = @'
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "Code.gov Inventory",
+  "description": "A federal source code catalog",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "The version of the metadata schema in use. Implements semantic versioning 2.0.0 rules as defined at http://semver.org"
+    },
+    "measurementType": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "enum": [
+            "linesOfCode",
+            "modules",
+            "cost",
+            "projects",
+            "systems",
+            "other"
+          ],
+          "description": "An enumerated list of methods for measuring the open source requirement."
+        },
+        "ifOther": {
+          "type": "string",
+          "description": "A one- or two- sentence description of the measurement type used, if 'other' is selected as the value of 'method' field."
+        }
+      },
+      "additionalProperties": false
+    },
+    "agency": {
+      "type": "string",
+      "description": "The agency acronym for Clinger Cohen Act agency, as defined by the United States Government Manual."
+
+    },
+    "releases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "An object containing each versioned source code release made available.",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the release."
+          },
+          "version": {
+            "type": "string",
+            "description": "The version for this release. For example, '1.0.0'."
+          },
+          "organization": {
+            "type": "string",
+            "description": "The organization or component within the agency to which the releases listed belong. For example, '18F' or 'Navy'."
+          },
+          "description": {
+            "type": "string",
+            "description": "A one- or two-sentence description of the release."
+          },
+
+          "permissions": {
+            "type": "object",
+            "properties": {
+              "licenses": {
+                "type": ["array", "null"],
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "URL": {
+                      "type": "string",
+                      "format": "uri",
+                      "description": "The URL of the release license, if available. If not, null should be used."
+                    },
+                    "name": {
+                      "type": "string",
+                      "description": "An abbreviation for the name of the license. For example, 'CC0' or 'MIT'."
+                    }
+                  },
+                  "additionalProperties": false
+                },
+                "additionalProperties": false
+              },
+              "usageType": {
+                "type": "string",
+                "description": "A list of enumerated values which describes the usage permissions for the release.",
+                "enum": [
+                  "openSource",
+                  "governmentWideReuse",
+                  "exemptByLaw",
+                  "exemptByNationalSecurity",
+                  "exemptByAgencySystem",
+                  "exemptByAgencyMission",
+                  "exemptByCIO",
+                  "exemptByPolicyDate"
+                ],
+                "additionalProperties": false
+              },
+              "exemptionText": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "If an exemption is listed in the 'usageType' field, this field should include a one- or two- sentence justification for the exemption used."
+              }
+            },
+            "required":"licenses"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "An array of keywords that will be helpful in discovering and searching for the release."
+            }
+
+          },
+          "contact": {
+            "type": "object",
+            "properties": {
+              "email": {
+                "type": "string",
+                "description": "The email address for the point of contact for the release."
+
+              },
+              "name": {
+                "type": "string",
+                "description": "The name of the point of contact for the release."
+
+              },
+              "URL": {
+                "type": "string",
+                "format": "uri",
+                "description": "The URL to a website that can be used to reach the point of contact. For example, 'http://twitter.com/codeDotGov'."
+              },
+              "phone": {
+                "type": "string",
+                "description": "A phone number for the point of contact for the release."
+              }
+            },
+            "required": "email",
+            "additionalProperties": false
+          },
+          "status": {
+            "type": "string",
+            "description": "The development status of the release.",
+            "enum": [
+              "Ideation",
+              "Development",
+              "Alpha",
+              "Beta",
+              "Release Candidate",
+              "Production",
+              "Archival"
+            ]
+          },
+          "vcs": {
+            "type": "string",
+            "description": "A lowercase string with the name of the version control system that is being used for the release. For example, 'git'."
+          },
+          "repositoryURL": {
+            "type": ["string", "null"],
+            "format": "uri",
+            "description": "The URL of the public release repository for open source repositories. This field is not required for repositories that are only available as government-wide reuse or are closed (pursuant to one of the exemptions)."
+          },
+          "homepageURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL of the public release homepage."
+          },
+          "downloadURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL where a distribution of the release can be found."
+          },
+          "disclaimerURL": {
+            "type": "string",
+            "format": "uri",
+            "description": "The URL where disclaimer language regarding the release can be found."
+          },
+          "disclaimerText": {
+            "type": "string",
+            "description": "Short paragraph that includes disclaimer language to accompany the release."
+          },
+          "languages": {
+            "type": "array",
+            "description": " An array of strings with the names of the programming languages in use on the release.",
+            "items": {
+              "type": "string"
+            }
+          },
+          "laborHours": {
+            "type": "number",
+            "description": "An estimate of total labor hours spent by your organization/component across all versions of this release. This includes labor performed by federal employees and contractors."
+          },
+          "relatedCode": {
+            "type": "array",
+            "description": "An array of affiliated government repositories that may be a part of the same project. For example,  relatedCode for 'code-gov-web' would include 'code-gov-api' and 'code-gov-tools'.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the code repository, project, library or release."
+                },
+                "URL": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The URL where the code repository, project, library or release can be found."
+                },
+                "isGovernmentRepo": {
+                  "type": "boolean",
+                  "description": "Is the code repository owned or managed by a federal agency?"
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "reusedCode": {
+            "type": "array",
+            "description": "An array of government source code, libraries, frameworks, APIs, platforms or other software used in this release. For example, US Web Design Standards, cloud.gov, Federalist, Digital Services Playbook, Analytics Reporter.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The name of the software used in this release."
+                },
+                "URL": {
+                  "type": "string",
+                  "format": "uri",
+                  "description": "The URL where the software can be found."
+                }
+
+              },
+              "additionalProperties": false
+            }
+          },
+          "partners": {
+            "type": "array",
+            "description": "An array of objects including an acronym for each agency partnering on the release and the contact email at such agency.",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "The acronym describing the partner agency."
+                },
+                "email": {
+                  "type": "string",
+                  "description": "The email address for the point of contact at the partner agency."
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "date": {
+            "type": "object",
+            "description": "A date object describing the release.",
+            "properties": {
+              "created": {
+                "type": "string",
+                "description": "The date the release was created, in YYYY-MM-DD or ISO 8601 format."
+              },
+              "lastModified": {
+                "type": "string",
+                "description": "The date the release was modified, in YYYY-MM-DD or ISO 8601 format."
+              },
+              "metadataLastUpdated": {
+                "type": "string",
+                "description": "The date the metadata of the release was last updated, in YYYY-MM-DD or ISO 8601 format."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "name",
+          "permissions",
+          "repositoryURL",
+          "description",
+          "laborHours",
+          "tags",
+          "contact"
+        ]
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "version",
+    "measurementType",
+    "agency",
+    "releases"
+  ],
+  "additionalProperties": false
+}
+'@
+
+Function Test-CodeGovJsonFile() {
+    [CmdletBinding()] 
+    [OutputType([bool])]
+    Param(
+        [Parameter(Mandatory=$true, HelpMessage='GitHub organization name(s)')]
+        [ValidateNotNullOrEmpty()]
+        [Parameter(Mandatory=$true, HelpMessage='Path to save the JSON file to')]
+        [string]$Path
+    )
+    
+    $content = Get-Content -Path $Path -Raw 
+
+    $codeGovJson = $content | ConvertFrom-Json
+
+    $propertyNames = @('version','agency','measurementType','releases')
+    
+    $propertyNames | ForEach-Object {
+        $propertyName = $_
+        
+        if (!($codeGovJson.PSObject.Properties.Name -contains $propertyName)) {
+            Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+        }
+        
+    }
+    
+    $schema = [NewtonSoft.Json.Schema.JSchema]::Parse($script:codeGov20Schema)
+    
+    if (!$scheme.Valid) {
+        throw 'code.gov schema is not valid'
+    }
+    
+    $settings = New-Object Newtonsoft.Json.Linq.JsonLoadSettings
+    $settings.CommentHandling = [Newtonsoft.Json.Linq.CommentHandling]::Ignore
+    $settings.LineInfoHandling = [Newtonsoft.Json.Linq.LineInfoHandling]::Load
+    $json = [Newtonsoft.Json.Linq]::Parse($content, $settings)
+    
+    $validationErrors = $null
+    
+    $isValid = [NewtonSoft.Json.Schema.JSchema]::IsValid($codeGovJson, $schema, $validationErrors)
+    
+    if (!$isValid -and $validationErrors -ne $null) {
+        $validationErrors | ForEach-Object {
+            Write-Warning -Message $_
+        }
+    }
+    
+    if ($codeGovJson.PSObject.Properties.Name -contains 'releases') {
+        $codeGovJson.releases | ForEach-Object {
+            $release = $_
+
+            $propertyNames = @('name','repositoryURL','description','permissions','laborHours','tags','contact')
+
+            $propertyName = 'name'
+            
+            if ($release.PSObject.Properties.Name -contains $propertyName) {
+                $value = $release.($propertyName)
+                
+                if($value -eq $null -or $value -eq '') {
+                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
+                }
+            } else {
+                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+            }
+            
+            $propertyName = 'repositoryURL'
+            
+            if ($release.PSObject.Properties.Name -contains $propertyName) {
+                $value = $release.($propertyName)
+                
+                if($value -eq $null -or $value -eq '') {
+                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
+                }
+                
+                #TODO: check if it is a URL
+            } else {
+                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+            }
+            
+            $propertyName = 'description'
+            
+            if ($release.PSObject.Properties.Name -contains $propertyName) {
+                $value = $release.($propertyName)
+                
+                if($value -eq $null -or $value -eq '') {
+                    Write-Warning -Message ('Required {0} property did not have a value' -f $propertyName)
+                }
+            } else {
+                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+            }
+            
+            $propertyName = 'permissions'
+            
+            if ($release.PSObject.Properties.Name -contains $propertyName) {
+                $value = $release.($propertyName)
+                
+                if($value -isnot [psobject]) {
+                    Write-Warning -Message ('Required {0} property is not an object' -f $propertyName)
+                } else {
+                
+                    $propertyName = 'licenses'
+
+                    if($value.PSObject.Properties.Name -contains $propertyName) {
+                        $value = $value.($propertyName)
+                        
+                        if($value -isnot [psobject]) {
+                            Write-Warning -Message ('Required {0} property is not an object' -f $propertyName)
+                        } else {
+                        
+                        }
+                        
+                    } else {
+                        Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+                    }
+                
+                }
+            } else {
+                Write-Warning -Message ('Required {0} property was missing' -f $propertyName)
+            }
+
+# permissions.licenses
+# permissions.usageType
+
+# license.URL
+# license.name
+
+# contact.email    
+            
+        }
+    }
 }
 
 Function Add-Repository() {
