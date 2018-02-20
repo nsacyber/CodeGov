@@ -30,8 +30,12 @@ Set-OAuthToken -Token 'insertgithubapitokenvaluehere'
 
 New-CodeGovJsonFile -Organization iadgov -AgencyName 'NSA Information Assurance' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA IA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/help/contact/index.cfm' -AgencyContactPhone '410-854-4200' -Path "$env:userprofile\Desktop\nsaia.json"
 
-Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\nsaia.json" -NewJsonPath "$env:userprofile\Desktop\nsaia_code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\iadgov.github.io\overrides.json"
+Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\nsaia.json" -NewJsonPath "$env:userprofile\Desktop\code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\iadgov.github.io\overrides.json"
 
-$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Documents\GitHub\iadgov.github.io\code.json"
+$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Desktop\code.json"
 
-$valid
+if ($valid) {
+    Move-Item -Path "$env:userprofile\Desktop\code.json" -Destination "$env:userprofile\Documents\GitHub\iadgov.github.io\code.json" -Force
+} else {
+    Write-Host "$env:userprofile\Desktop\code.json is not a valid code.gov JSON file"
+}

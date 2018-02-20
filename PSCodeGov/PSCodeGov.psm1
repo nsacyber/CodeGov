@@ -221,7 +221,7 @@ Function Get-GitHubRepositoryLicenseUrl() {
 
     $license = $null
 
-    $urls = [string[]]@(('{0}/blob/{1}/LICENSE' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.md' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.txt' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.spdx' -f $Url,$Branch))
+    $urls = [string[]]@(('{0}/blob/{1}/LICENSE' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.md' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.txt' -f $Url,$Branch)) # ,('{0}/blob/{1}/LICENSE.spdx' -f $Url,$Branch)
 
     $urls = $urls | ForEach-Object { 
         if (Test-Url -Url $_ ) { 
@@ -960,7 +960,7 @@ Function Test-CodeGovJsonFile() {
     
     if (!$isValid -and $validationErrors.Count -gt 0) {
         $validationErrors | ForEach-Object {
-            Write-Warning -Message $_.Message
+            Write-Warning -Message ('Line Number: {0}, Line Position: {1}, Error Type: {2}, Error Message: {3}, JSON Path: {4}, JSON Value: {5}' -f $_.LineNumber, $_.LinePosition, $_.ErrorType, $_.Message, $_.Path, $_.Value)
         }
     }
 
