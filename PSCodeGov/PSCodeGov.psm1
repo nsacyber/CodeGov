@@ -682,7 +682,6 @@ Function Test-CodeGovJsonFile() {
     "agency": {
       "type": "string",
       "description": "The agency acronym for Clinger Cohen Act agency, as defined by the United States Government Manual."
-
     },
     "releases": {
       "type": "array",
@@ -704,9 +703,8 @@ Function Test-CodeGovJsonFile() {
           },
           "description": {
             "type": "string",
-            "description": "A one- or two-sentence description of the release."
+            "description": "A one or two sentence description of the release."
           },
-
           "permissions": {
             "type": "object",
             "properties": {
@@ -726,8 +724,7 @@ Function Test-CodeGovJsonFile() {
                     }
                   },
                   "additionalProperties": false
-                },
-                "additionalProperties": false
+                }
               },
               "usageType": {
                 "type": "string",
@@ -739,19 +736,16 @@ Function Test-CodeGovJsonFile() {
                   "exemptByNationalSecurity",
                   "exemptByAgencySystem",
                   "exemptByAgencyMission",
-                  "exemptByCIO",
-                  "exemptByPolicyDate"
+                  "exemptByCIO"
                 ],
                 "additionalProperties": false
               },
               "exemptionText": {
-                "type": [
-                  "string",
-                  "null"
-                ],
+                "type": ["string", "null"],
                 "description": "If an exemption is listed in the 'usageType' field, this field should include a one- or two- sentence justification for the exemption used."
               }
             },
+            "additionalProperties": false,
             "required": ["licenses"]
           },
           "tags": {
@@ -760,7 +754,6 @@ Function Test-CodeGovJsonFile() {
               "type": "string",
               "description": "An array of keywords that will be helpful in discovering and searching for the release."
             }
-
           },
           "contact": {
             "type": "object",
@@ -785,8 +778,8 @@ Function Test-CodeGovJsonFile() {
                 "description": "A phone number for the point of contact for the release."
               }
             },
-            "required": ["email"],
-            "additionalProperties": false
+            "additionalProperties": false,
+            "required": ["email"]
           },
           "status": {
             "type": "string",
@@ -806,7 +799,7 @@ Function Test-CodeGovJsonFile() {
             "description": "A lowercase string with the name of the version control system that is being used for the release. For example, 'git'."
           },
           "repositoryURL": {
-            "type": ["string", "null"],
+            "type": "string",
             "format": "uri",
             "description": "The URL of the public release repository for open source repositories. This field is not required for repositories that are only available as government-wide reuse or are closed (pursuant to one of the exemptions)."
           },
@@ -854,10 +847,6 @@ Function Test-CodeGovJsonFile() {
                   "type": "string",
                   "format": "uri",
                   "description": "The URL where the code repository, project, library or release can be found."
-                },
-                "isGovernmentRepo": {
-                  "type": "boolean",
-                  "description": "Is the code repository owned or managed by a federal agency?"
                 }
               },
               "additionalProperties": false
@@ -878,7 +867,6 @@ Function Test-CodeGovJsonFile() {
                   "format": "uri",
                   "description": "The URL where the software can be found."
                 }
-
               },
               "additionalProperties": false
             }
@@ -907,14 +895,17 @@ Function Test-CodeGovJsonFile() {
             "properties": {
               "created": {
                 "type": "string",
+                "format": "date",
                 "description": "The date the release was created, in YYYY-MM-DD or ISO 8601 format."
               },
               "lastModified": {
                 "type": "string",
+                "format": "date",
                 "description": "The date the release was modified, in YYYY-MM-DD or ISO 8601 format."
               },
               "metadataLastUpdated": {
                 "type": "string",
+                "format": "date",
                 "description": "The date the metadata of the release was last updated, in YYYY-MM-DD or ISO 8601 format."
               }
             },
