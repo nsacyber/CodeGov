@@ -1,7 +1,7 @@
 # PSCodeGov
 Creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/#/policy-guide/docs/compliance/inventory-code) based on GitHub repository information.
 
-This PSCodeGov module is used to generate the [NSA IA GitHub code.gov JSON file](https://iadgov.github.io/code.json).
+This PSCodeGov module is used to generate the [NSA IA GitHub code.gov JSON file](https://nsacyber.github.io/code.json).
 
 ## Getting started
 
@@ -10,11 +10,11 @@ To get started using the tools:
 1. [Download](#downloading-the-repository) the repository as a zip file 
 1. [Configure PowerShell](#configuring-the-powershell-environment) 
 1. [Load the code](#loading-the-code) 
-1. [Running the code](#running-the-code) 
+1. [Run the code](#running-the-code) 
 
 ## Downloading the repository
 
-Download the [current code](https://github.com/iadgov/PSCodeGov/archive/master.zip) to your **Downloads** folder. It will be saved as **PSCodeGov-master.zip** by default.
+Download the [current code](https://github.com/nsacyber/PSCodeGov/archive/master.zip) to your **Downloads** folder. It will be saved as **PSCodeGov-master.zip** by default.
 
 ## Configuring the PowerShell environment
 The PowerShell commands are meant to run from a system with at least PowerShell 4.0 and .Net 4.5 installed. PowerShell may need to be configured to run the commands.
@@ -68,11 +68,11 @@ Import-Module -Name PSCodeGov
 
 Set-OAuthToken -Token insertgithubapitokenvaluehere
 
-New-CodeGovJsonFile -Organization iadgov -AgencyName 'NSA Information Assurance' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA IA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/help/contact/index.cfm' -AgencyContactPhone '410-854-4200' -Path "$env:userprofile\Desktop\code.json"
+New-CodeGovJsonFile -Organization nsacyber -AgencyName 'NSA Cybersecurity' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/help/contact/index.cfm' -AgencyContactPhone '410-854-4200' -Path "$env:userprofile\Desktop\code.json"
 
-Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\code.json" -NewJsonPath "$env:userprofile\Documents\GitHub\iadgov.github.io\code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\iadgov.github.io\overrides.json"
+Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\code.json" -NewJsonPath "$env:userprofile\Documents\GitHub\nsacyber.github.io\code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\nsacyber.github.io\overrides.json"
 
-$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Documents\GitHub\iadgov.github.io\code.json"
+$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Documents\GitHub\nsacyber.github.io\code.json"
 
 $valid
 ```

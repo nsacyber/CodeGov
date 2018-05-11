@@ -59,6 +59,8 @@ Function Test-Url() {
         [Uri]$Url
     )
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11    
+
     $uri = $Url
 
     $proxyUri = [System.Net.WebRequest]::GetSystemWebProxy().GetProxy($uri)
@@ -68,6 +70,7 @@ Function Test-Url() {
         Method = 'Head';
         ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
         UseBasicParsing = $true;
+        UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36';
     }
 
     if (([string]$proxyUri) -ne $uri) {
@@ -96,6 +99,8 @@ Function Get-GitHubRepositoryLanguages() {
         [Uri]$Url
     )
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11  
+
     $languages = @{}
 
     $uri = $Url
@@ -107,6 +112,7 @@ Function Get-GitHubRepositoryLanguages() {
         Method = 'Get';
         ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
         UseBasicParsing = $true;
+        UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36';
     }
 
     if (([string]$proxyUri) -ne $uri) {
@@ -156,6 +162,8 @@ Function Get-GitHubRepositories() {
         [string]$Organization
     )
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 
+
     $repos = $null
 
     $uri = ($script:GitHubBaseUri,'orgs',$Organization.ToLower(),'repos' -join '/')
@@ -168,6 +176,7 @@ Function Get-GitHubRepositories() {
         ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
         UseBasicParsing = $true;
         Headers = @{'Accept'='application/vnd.github.mercy-preview+json'} # topics API preview 
+        UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36';
     }
 
     if (([string]$proxyUri) -ne $uri) {
@@ -218,7 +227,7 @@ Function Get-GitHubRepositoryLicenseUrl() {
         [ValidateNotNullOrEmpty()]
         [string]$Branch
     )
-
+    
     $license = $null
 
     $urls = [string[]]@(('{0}/blob/{1}/LICENSE' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.md' -f $Url,$Branch),('{0}/blob/{1}/LICENSE.txt' -f $Url,$Branch)) # ,('{0}/blob/{1}/LICENSE.spdx' -f $Url,$Branch)
@@ -254,6 +263,8 @@ Function Get-GitHubRepositoryLicense() {
         [string]$Branch
     )
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 
+
     $license = $null
     $response = $null
     $conte = $null
@@ -267,6 +278,7 @@ Function Get-GitHubRepositoryLicense() {
         Method = 'Get';
         ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
         UseBasicParsing = $true;
+        UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36';
     }
 
     if (([string]$proxyUri) -ne $uri) {
@@ -358,6 +370,8 @@ Function Get-GitHubRepositoryReleaseUrl() {
         [string]$Url
     )
 
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::Tls11 
+
     $release = $null
 
     $uri = $Url.Replace('{/id}','')
@@ -369,6 +383,7 @@ Function Get-GitHubRepositoryReleaseUrl() {
         Method = 'Get';
         ProxyUseDefaultCredentials = (([string]$proxyUri) -ne $uri);
         UseBasicParsing = $true;
+        UserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/66.0.3359.139 Safari/537.36';
     }
 
     if (([string]$proxyUri) -ne $uri) {
