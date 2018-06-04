@@ -7,7 +7,7 @@ This PSCodeGov module is used to generate the [NSA IA GitHub code.gov JSON file]
 
 To get started using the tools:
 
-1. [Install](Installing-prerequisites) prerequisites
+1. [Install](#installing-prerequisites) prerequisites
 1. [Download](#downloading-the-repository) the repository as a zip file 
 1. [Configure PowerShell](#configuring-the-powershell-environment) 
 1. [Load the code](#loading-the-code) 
@@ -21,8 +21,8 @@ Install NewtonSoft.Json:
 * gacutil -i %userprofile%\Downloads\Json110r2\Bin\net45\Newtonsoft.Json.dll
 
 Install NewtonSoft.Json.Schema:
-gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net40\Newtonsoft.Json.Schema.dll
-gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net45\Newtonsoft.Json.Schema.dll
+* gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net40\Newtonsoft.Json.Schema.dll
+* gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net45\Newtonsoft.Json.Schema.dll
 
 ## Downloading the repository
 
@@ -73,7 +73,7 @@ Now extract the downloaded zip file and load the PowerShell code used for apply 
 1. `mv .\PSCodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
-See the [GenerateCodeGovJson file](.\Examples\GenerateCodeGovJson.ps1) in the [Examples](.\Examples) folder for an example of how to use the module.
+See the [GenerateCodeGovJson file](./Examples/GenerateCodeGovJson.ps1) in the [Examples](./Examples) folder for an example of how to use the module.
 
 ## License
 See [LICENSE](./LICENSE.md).
