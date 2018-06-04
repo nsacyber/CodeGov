@@ -7,10 +7,22 @@ This PSCodeGov module is used to generate the [NSA IA GitHub code.gov JSON file]
 
 To get started using the tools:
 
+1. [Install](Installing-prerequisites) prerequisites
 1. [Download](#downloading-the-repository) the repository as a zip file 
 1. [Configure PowerShell](#configuring-the-powershell-environment) 
 1. [Load the code](#loading-the-code) 
 1. [Run the code](#running-the-code) 
+
+## Installing prerequisites
+This module depends on [NewtonSoft.Json](https://github.com/JamesNK/Newtonsoft.Json/releases) and [NewtonSoft.Json.Schema](https://github.com/JamesNK/Newtonsoft.Json.Schema/releases) for validation of the generated code.gov JSON file. Download the latest release from each project and use [gacutil](https://docs.microsoft.com/en-us/dotnet/framework/tools/gacutil-exe-gac-tool) to install the files to the Global Assembly Cache (GAC).
+
+Install NewtonSoft.Json:
+* gacutil -i %userprofile%\Downloads\Json110r2\Bin\net40\Newtonsoft.Json.dll
+* gacutil -i %userprofile%\Downloads\Json110r2\Bin\net45\Newtonsoft.Json.dll
+
+Install NewtonSoft.Json.Schema:
+gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net40\Newtonsoft.Json.Schema.dll
+gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net45\Newtonsoft.Json.Schema.dll
 
 ## Downloading the repository
 
@@ -61,21 +73,7 @@ Now extract the downloaded zip file and load the PowerShell code used for apply 
 1. `mv .\PSCodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
-This module depends on [NewtonSoft.Json](https://github.com/JamesNK/Newtonsoft.Json/releases) and [NewtonSoft.Json.Schema](https://github.com/JamesNK/Newtonsoft.Json.Schema/releases) for validation of the generated code.gov JSON file. Ensure those assemblies are installed in the .Net Global Assembly Cache (GAC).
-
-```
-Import-Module -Name PSCodeGov
-
-Set-OAuthToken -Token insertgithubapitokenvaluehere
-
-New-CodeGovJsonFile -Organization nsacyber -AgencyName 'NSA Cybersecurity' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/help/contact/index.cfm' -AgencyContactPhone '410-854-4200' -Path "$env:userprofile\Desktop\code.json"
-
-Invoke-CodeGovJsonOverride -OriginalJsonPath "$env:userprofile\Desktop\code.json" -NewJsonPath "$env:userprofile\Documents\GitHub\nsacyber.github.io\code.json" -OverrideJsonPath "$env:userprofile\Documents\GitHub\nsacyber.github.io\overrides.json"
-
-$valid = Test-CodeGovJsonFile -Path "$env:userprofile\Documents\GitHub\nsacyber.github.io\code.json"
-
-$valid
-```
+See the [GenerateCodeGovJson file](.\Examples\GenerateCodeGovJson.ps1) in the [Examples](.\Examples) folder for an example of how to use the module.
 
 ## License
 See [LICENSE](./LICENSE.md).

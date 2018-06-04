@@ -138,6 +138,7 @@ Function Get-GitHubRepositoryLanguages() {
 
         $statusCode = $response.StatusCode
     } catch {
+        $statusCode = [int]$_.Exception.Response.StatusCode
         Write-Error $_
     }
 
@@ -202,6 +203,7 @@ Function Get-GitHubRepositories() {
 
         $statusCode = $response.StatusCode
     } catch {
+        $statusCode = [int]$_.Exception.Response.StatusCode
         Write-Error $_
     } 
 
@@ -409,6 +411,7 @@ Function Get-GitHubRepositoryReleaseUrl() {
 
         $statusCode = $response.StatusCode
     } catch {
+        $statusCode = [int]$_.Exception.Response.StatusCode
         Write-Error $_
     } 
 
@@ -504,9 +507,9 @@ Function New-CodeGovJson() {
             $tags = if ($_.topics -eq $null -or $_.topics.Count -eq 0) { [string[]]@('none') } else { [string[]]@($_.topics) }
             $homepageUrl = if ($_.homepage -eq $null -or $_.homepage -eq '') { $repositoryUrl } else { $_.homepage }
             $languages = Get-GitHubRepositoryLanguages -Url $_.languages_url
-            $lastUpdated = $_.updated_at
-            $lastCommit = $_.pushed_at
-            $created = $_.created_at
+            $lastUpdated = $_.updated_at.Split('T')[0] # date only
+            $lastCommit = $_.pushed_at.Split('T')[0] # date only
+            $created = $_.created_at.Split('T')[0] # date only
             $isArchived = $_.archived
 
             $lic = Get-GitHubRepositoryLicense -Organization $org -Url $repositoryUrl -Project $name -Branch $branch
@@ -520,8 +523,8 @@ Function New-CodeGovJson() {
 
             $date = [pscustomobject]@{
                 'created' = $created; # optional
-                'metadataLastUpdated' = $lastUpdated; # optional
-                'lastModified' = $lastCommit; # optional
+                'metadataLastUpdated' = $lastUpdated; 
+                'lastModified' = $lastCommit;
             }
 
             $license = [pscustomobject]@{
@@ -761,7 +764,7 @@ Function Test-CodeGovJsonFile() {
               }
             },
             "additionalProperties": false,
-            "required": ["licenses"]
+            "required": ["licenses", "usageType"]
           },
           "tags": {
             "type": "array",
