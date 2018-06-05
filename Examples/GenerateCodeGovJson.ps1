@@ -1,6 +1,6 @@
 Set-StrictMode -Version 3
 
-Import-Module -Name PSCodeGov
+Import-Module -Name CodeGov
 
 Set-OAuthToken -Token 'insertgithubapitokenvaluehere'
 

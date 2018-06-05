@@ -1,7 +1,7 @@
-# PSCodeGov
+# CodeGov
 Creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/#/policy-guide/docs/compliance/inventory-code) based on GitHub repository information.
 
-This PSCodeGov module is used to generate the [NSA IA GitHub code.gov JSON file](https://nsacyber.github.io/code.json).
+The CodeGov PowerShell module is used to generate the [NSA Cybersecurity GitHub code.gov JSON file](https://nsacyber.github.io/code.json).
 
 ## Getting started
 
@@ -26,7 +26,7 @@ Install NewtonSoft.Json.Schema:
 
 ## Downloading the repository
 
-Download the [current code](https://github.com/nsacyber/PSCodeGov/archive/master.zip) to your **Downloads** folder. It will be saved as **PSCodeGov-master.zip** by default.
+Download the [current code](https://github.com/nsacyber/CodeGov/archive/master.zip) to your **Downloads** folder. It will be saved as **PSCodeGov-master.zip** by default.
 
 ## Configuring the PowerShell environment
 The PowerShell commands are meant to run from a system with at least PowerShell 4.0 and .Net 4.5 installed. PowerShell may need to be configured to run the commands.
@@ -44,7 +44,7 @@ Users will need to unblock the downloaded zip file since it will be marked as ha
 
 1. `cd $env:USERPROFILE` 
 1. `cd Downloads` 
-1. `Unblock-File -Path '.\PSCodeGov-master.zip'`
+1. `Unblock-File -Path '.\CodeGov-master.zip'`
 
 Running the PowerShell scripts inside the zip file without unblocking the file will result in the following warning:
 
@@ -56,7 +56,7 @@ Running the PowerShell scripts inside the zip file without unblocking the file w
 If the downloaded zip file is not unblocked before extracting it, then all the individual PowerShell files that were in the zip file will have to be unblocked. You will need to run the following command after Step 5 in the [Loading the code](#loading-the-code) section:
 
 ```
-Get-ChildItem -Path '.\PSCodeGov' -Recurse -Include '*.ps1','*.psm1','*.psd1' | Unblock-File -Verbose
+Get-ChildItem -Path '.\CodeGov' -Recurse -Include '*.ps1','*.psm1','*.psd1' | Unblock-File -Verbose
 ```
 
 See the [Unblock-File command's documentation](https://docs.microsoft.com/en-us/powershell/module/Microsoft.PowerShell.Utility/Unblock-File?view=powershell-5.1) for more information on how to use it.
@@ -65,12 +65,12 @@ See the [Unblock-File command's documentation](https://docs.microsoft.com/en-us/
 Now extract the downloaded zip file and load the PowerShell code used for apply the policies.
 
 1. Right click on the zip file and select **Extract All**
-1. At the dialog remove **PSCodeGov-master** from the end of the path since it will extract the files to a PSCodeGov-master folder by default
+1. At the dialog remove **CodeGov-master** from the end of the path since it will extract the files to a CodeGov-master folder by default
 1. Click the **Extract** button
-1. From the previously opened PowerShell prompt, rename the **PSCodeGov-master** folder to **PSCodeGov** `mv .\PSCodeGov-master\ .\PSCodeGov\`
-1. `cd PSCodeGov`
-1. Inside the **PSCodeGov** folder is another folder named **PSCodeGov** which is a PowerShell module. Move this folder to a folder path in your $PSModulePath such as **C:\\users\\*username*\\Documents\\WindowsPowerShell\\Modules**
-1. `mv .\PSCodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
+1. From the previously opened PowerShell prompt, rename the **CodeGov-master** folder to **CodeGov** `mv .\CodeGov-master\ .\CodeGov\`
+1. `cd CodeGov`
+1. Inside the **CodeGov** folder is another folder named **CodeGov** which is a PowerShell module. Move this folder to a folder path in your $PSModulePath such as **C:\\users\\*username*\\Documents\\WindowsPowerShell\\Modules**
+1. `mv .\CodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
 See the [GenerateCodeGovJson file](./Examples/GenerateCodeGovJson.ps1) in the [Examples](./Examples) folder for an example of how to use the module.
