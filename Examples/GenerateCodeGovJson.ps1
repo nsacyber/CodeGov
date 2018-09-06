@@ -15,7 +15,7 @@ if (!(Test-Path -Path $sitePath -PathType Container)) {
 
 #New-CodeGovJsonFile -Organization 'NationalSecurityAgency' -AgencyName 'National Security Agency' -AgencyContactEmail 'tech_transfer@nsa.gov' -AgencyContactName 'NSA Technology Transfer Program' -AgencyContactUrl 'https://www.nsa.gov/what-we-do/research/technology-transfer/' -AgencyContactPhone '1-866-680-4539' -Path '.\nsa_code.json'
 
-New-CodeGovJsonFile -Organization nsacyber -AgencyName 'NSA Cybersecurity' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/help/contact/index.cfm' -AgencyContactPhone '410-854-4200' -Path $unprocessedJsonPath
+New-CodeGovJsonFile -Organization nsacyber -AgencyName 'NSA Cybersecurity' -AgencyContactEmail 'iad_ccc@nsa.gov' -AgencyContactName 'NSA Client Contact Center' -AgencyContactUrl 'https://www.iad.gov/iad/library/supporting-documents/faq/iad-contact-list.cfm' -AgencyContactPhone '410-854-4200' -Path $unprocessedJsonPath
 
 Invoke-CodeGovJsonOverride -OriginalJsonPath $unprocessedJsonPath -NewJsonPath $processedJsonPath -OverrideJsonPath $overridesJsonPath
 
