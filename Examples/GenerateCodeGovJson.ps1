@@ -20,12 +20,7 @@ Function Invoke-CodeGov() {
 
         [Parameter(Mandatory=$true, HelpMessage='Organization properties for the code.json file')]
         [ValidateNotNullOrEmpty()]
-        [object]$Properties,        
-        
-        [Parameter(Mandatory=$true, HelpMessage='A GitHub personal access OAuth token')]
-        [ValidateNotNullOrEmpty()]
-        [ValidatePattern('^([0-9a-f]{40}){0,1}$')]
-        [string]$Token,
+        [object]$Properties,
 
         [Parameter(Mandatory=$false, HelpMessage='Validate code.json file')]
         [switch]$Validate
@@ -45,6 +40,7 @@ Function Invoke-CodeGov() {
 }
 
 Set-OAuthToken -Token 'insertgithubapitokenhere'
+
 
 $tempPath = "$env:userprofile\Desktop"
 $sitePath = "$env:userprofile\Documents\GitHub\nsacyber.github.io"
