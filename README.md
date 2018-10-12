@@ -73,7 +73,7 @@ Now extract the downloaded zip file and load the PowerShell code used for apply 
 1. `mv .\CodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
-See the [GenerateCodeGovJson file](./Examples/GenerateCodeGovJson.ps1) in the [Examples](./Examples) folder for an example of how to use the module.
+See the [GenerateCodeGovJson file] in the [Examples](./Examples) folder for an example of how to use the module.
 
 ## License
 See [LICENSE](./LICENSE.md).
