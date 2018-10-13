@@ -666,6 +666,7 @@ Function Test-CodeGovJsonFile() {
     
     $codeGov20Schema = @'
 {
+{
   "$schema": "http://json-schema.org/draft-04/schema#",
   "title": "Code.gov Inventory",
   "description": "A federal source code catalog",
@@ -865,6 +866,10 @@ Function Test-CodeGovJsonFile() {
                   "type": "string",
                   "format": "uri",
                   "description": "The URL where the code repository, project, library or release can be found."
+                },
+                "isGovernmentRepo":{
+                  "type": "boolean",
+                  "description": "True or False. Is the code repository owned or managed by a federal agency"
                 }
               },
               "additionalProperties": false
