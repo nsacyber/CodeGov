@@ -1,5 +1,5 @@
 # CodeGov
-Creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/#/policy-guide/docs/compliance/inventory-code) based on GitHub repository information.
+Creates a [code.gov](https://code.gov/) [code inventory JSON file](https://code.gov/about/compliance/inventory-code) based on GitHub repository information.
 
 The CodeGov PowerShell module is used to generate the [NSA Cybersecurity GitHub code.gov JSON file](https://nsacyber.github.io/code.json).
 
@@ -23,6 +23,8 @@ Install NewtonSoft.Json:
 Install NewtonSoft.Json.Schema:
 * gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net40\Newtonsoft.Json.Schema.dll
 * gacutil -i %userprofile%\Downloads\\JsonSchema30r10\Bin\net45\Newtonsoft.Json.Schema.dll
+
+The [code.gov schema validator](https://code.gov/about/compliance/inventory-code/validate-schema) can also be used to validate the generated code.gov JSON file against the schema found [here](https://github.com/GSA/code-gov-api/tree/master/schemas/repo) and [here](https://github.com/GSA/code-gov-validator/tree/master/lib/schemas/repo).
 
 ## Downloading the repository
 
@@ -73,7 +75,7 @@ Now extract the downloaded zip file and load the PowerShell code used for apply 
 1. `mv .\CodeGov "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"`
 
 ### Running the code
-See the [GenerateCodeGovJson file] in the [Examples](./Examples) folder for an example of how to use the module.
+See the [GenerateCodeGovJson file](./Examples/GenerateCodeGovJson.ps1) in the [Examples](./Examples) folder for an example of how to use the module.
 
 ## License
 See [LICENSE](./LICENSE.md).

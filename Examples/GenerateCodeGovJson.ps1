@@ -41,9 +41,9 @@ Function Invoke-CodeGov() {
 
 Set-OAuthToken -Token 'insertgithubapitokenhere'
 
-
 $tempPath = "$env:userprofile\Desktop"
-$sitePath = "$env:userprofile\Documents\GitHub\nsacyber.github.io"
+$siteBasePath = "$env:userprofile\Documents\GitHub\nsacyber.github.io"
+$codeGovPath = "$siteBasePath\codegov"
 
 $nsaCyberProperties = [pscustomobject]@{
     Organization = 'nsacyber';
@@ -54,7 +54,7 @@ $nsaCyberProperties = [pscustomobject]@{
     AgencyContactPhone = '410-854-4200';
 }
 
-Invoke-CodeGov -UnprocessedJsonPath "$tempPath\nsacyber-code.json" -ProcessedJsonPath "$sitePath\nsacyber-code.json" -OverridesJsonPath "$sitePath\nsacyber-overrides.json" -Properties $nsaCyberProperties
+Invoke-CodeGov -UnprocessedJsonPath "$tempPath\nsacyber-code.json" -ProcessedJsonPath "$codeGovPath\nsacyber-code.json" -OverridesJsonPath "$codeGovPath\nsacyber-overrides.json" -Properties $nsaCyberProperties
 
 $nsaProperties = [pscustomobject]@{
     Organization = 'NationalSecurityAgency';
@@ -65,11 +65,11 @@ $nsaProperties = [pscustomobject]@{
     AgencyContactPhone = '1-866-680-4539';
 }
 
-Invoke-CodeGov -UnprocessedJsonPath "$tempPath\nsa-code.json" -ProcessedJsonPath "$sitePath\nsa-code.json" -OverridesJsonPath "$sitePath\nsa-overrides.json" -Properties $nsaProperties
+Invoke-CodeGov -UnprocessedJsonPath "$tempPath\nsa-code.json" -ProcessedJsonPath "$codeGovPath\nsa-code.json" -OverridesJsonPath "$codeGovPath\nsa-overrides.json" -Properties $nsaProperties
 
-$nsaCyberJson = Get-Content -Path "$sitePath\nsacyber-code.json" | ConvertFrom-Json
+$nsaCyberJson = Get-Content -Path "$codeGovPath\nsacyber-code.json" | ConvertFrom-Json
 
-$nsaJson = Get-Content -Path "$sitePath\nsa-code.json" | ConvertFrom-Json
+$nsaJson = Get-Content -Path "$codeGovPath\nsa-code.json" | ConvertFrom-Json
 
 $releases = @()
 
@@ -88,4 +88,4 @@ $codeGov = [pscustomobject][ordered]@{
     'releases' = $releases | Sort-Object -Property 'Name'; # required
 }
 
-$codeGov | ConvertTo-Json -Depth 5 | Out-File -FilePath "$sitePath\code.json"  -Force -NoNewline -Encoding 'ASCII'
+$codeGov | ConvertTo-Json -Depth 5 | Out-File -FilePath "$siteBasePath\code.json"  -Force -NoNewline -Encoding 'ASCII'

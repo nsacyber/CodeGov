@@ -516,7 +516,6 @@ Function New-CodeGovJson() {
             #$licenseUrl = if ($licenseUrl -eq $null) { 'null'} else { $licenseUrl }
             
             $disclaimerUrl = Get-GitHubRepositoryDisclaimerUrl -Url $repositoryUrl -Branch $branch
-            $disclaimerUrl = if ($disclaimerUrl -eq $null) { 'null'} else { $disclaimerUrl }
 
             $downloadUrl = Get-GitHubRepositoryReleaseUrl -Url $_.releases_url
             $downloadUrl = if ($downloadUrl -eq $null) {  ('{0}/archive/{1}.zip' -f $repositoryUrl,$branch) } else { $downloadUrl }
@@ -574,7 +573,7 @@ Function New-CodeGovJson() {
                 'repositoryURL' = $repositoryUrl; # required
                 'description' = $description; # required
                 'permissions' = $permissions; # required
-                'laborHours' = 1; # required, needs to be manually updated
+                'laborHours' = 1; # required, needs to be manually updated using override.json
                 'tags' = [string[]]@($tags); # required
                 'contact' = [pscustomobject]$contact; # required
 
@@ -583,8 +582,11 @@ Function New-CodeGovJson() {
                 'vcs' = 'git'; # optional
                 'homepageURL' = $homepageUrl; # optional
                 'downloadURL' = $downloadUrl; # optional
-                'disclaimerURL' = $disclaimerUrl; # optional
                 'date' = $date; # optional
+            }
+
+            if ($disclaimerUrl -ne $null) {
+                $release.Add('disclaimerURL', $disclaimerUrl) # optional
             }
 
             if ($languages.Count -gt 0) {
